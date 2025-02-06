@@ -33,7 +33,7 @@ A Windows desktop application (WinForms) that provides a one-stop GUI for variou
 
 *(Add screenshots here if you like. For example:)*
 
-![MercClean GUI Screenshot](screenshots/merc_clean_gui.png)
+![MercClean GUI Screenshot]([screenshots/merc_clean_gui.png](https://i.postimg.cc/zDn109YC/Screenshot-2025-02-06-123747.png))
 
 ---
 
