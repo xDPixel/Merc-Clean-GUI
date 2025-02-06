@@ -76,12 +76,6 @@ Contributions and pull requests are welcome! If you have bug fixes or new featur
 
 ---
 
-## License
-
-*(Add your desired license information here, e.g., MIT License, or any other.)*
-
----
-
 ## Credits
 
 - **Merc Clean Developer** – For the original command-line concept.
