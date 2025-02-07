@@ -37,7 +37,8 @@ A Windows desktop application (WinForms) that provides a one-stop GUI for variou
 ## Requirements
 
 - **Windows 10 or higher**  
-- **.NET 6+** or **.NET Framework 4.7.2+** (depending on your project setup)  
+- <del> **.NET 6+** or **.NET Framework 4.7.2+** (depending on your project setup) <del> 
+- NoW YoU CaN RuN ApP DiReCtLy WiThOuT AnY DePeNdANcIeS :)
 - **Administrator privileges** (the application checks at startup)
 
 ---
@@ -48,6 +49,8 @@ A Windows desktop application (WinForms) that provides a one-stop GUI for variou
 2. **Open in Visual Studio** (or another IDE supporting WinForms) and ensure you have the correct .NET SDK/Target.
 3. Build the solution, which creates an `.exe` (or `.exe + .dll` for .NET 6+) inside the `bin\Debug\net6.0-windows\` or `bin\Release\net6.0-windows\` folder (depending on your build configuration).
 4. **Run as Administrator**. The application will display an error if not run with elevated privileges.
+
+**OR JUST INSTALL LATEST RELEASE :)**
 
 ---
 
