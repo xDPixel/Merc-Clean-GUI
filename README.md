@@ -81,7 +81,7 @@ Contributions and pull requests are welcome! If you have bug fixes or new featur
 
 ## Credits
 
-- **Merc Clean Developer** – For the original command-line concept.
+- **X: @Mercenarry_** – For the original command-line concept.
 - **DPixel Team** – For additional functionalities, GUI improvements, and the kill-process feature.
 - **Lilnynho** – The generated executable can be distributed without requiring the installation of the .NET Runtime.
 
