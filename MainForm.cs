@@ -3,7 +3,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection;
 using System.Security.Principal;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -53,6 +56,9 @@ namespace MyMaintenanceApp
             }
 
             UpdateStatus("Idle", Color.Gray);
+            
+            // Check for updates asynchronously
+            _ = CheckForUpdatesAsync();
         }
 
         private void InitializeComponent()
@@ -313,6 +319,18 @@ namespace MyMaintenanceApp
                 TextAlign = ContentAlignment.MiddleCenter
             };
             this.Controls.Add(lblFooter);
+
+            // Version label (bottom right)
+            Label lblVersion = new Label
+            {
+                Text = "v1.2.0",
+                Location = new Point(780, 625),
+                Size = new Size(100, 20),
+                Font = new Font("Arial", 9, FontStyle.Regular),
+                ForeColor = Color.Gray,
+                TextAlign = ContentAlignment.MiddleRight
+            };
+            this.Controls.Add(lblVersion);
 
             // "X" Button
             btnX = new Button
@@ -761,6 +779,65 @@ namespace MyMaintenanceApp
             string creditsText = "Thanks to Merc Clean Developer for the base functionality.\n" +
                                  "Additional functionalities made by @DangerousPixel.";
             MessageBox.Show(creditsText, "Credits", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        /// <summary>
+        /// Checks for updates from GitHub releases.
+        /// </summary>
+        private async Task CheckForUpdatesAsync()
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", "Merc-Clean-GUI");
+                    
+                    var response = await client.GetStringAsync("https://api.github.com/repos/xDPixel/Merc-Clean-GUI/releases/latest");
+                    var release = JsonSerializer.Deserialize<GitHubRelease>(response);
+                    
+                    var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+                    var latestVersion = new Version(release.tag_name.TrimStart('v'));
+                    
+                    if (latestVersion > currentVersion)
+                    {
+                        this.Invoke(new Action(() => ShowUpdateDialog(release.tag_name)));
+                    }
+                }
+            }
+            catch
+            {
+                // Silently fail if update check fails (no internet, API issues, etc.)
+            }
+        }
+
+        /// <summary>
+        /// Shows the update dialog.
+        /// </summary>
+        private void ShowUpdateDialog(string latestVersion)
+        {
+            var result = MessageBox.Show(
+                $"A new version ({latestVersion}) is available!\n\nWould you like to download the update?",
+                "Update Available",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Information);
+
+            if (result == DialogResult.Yes)
+            {
+                Process.Start(new ProcessStartInfo("https://github.com/xDPixel/Merc-Clean-GUI/releases")
+                {
+                    UseShellExecute = true
+                });
+            }
+        }
+
+        /// <summary>
+        /// GitHub release model for JSON deserialization.
+        /// </summary>
+        private class GitHubRelease
+        {
+            public string tag_name { get; set; }
+            public string name { get; set; }
+            public bool prerelease { get; set; }
         }
     }
 }
