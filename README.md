@@ -35,8 +35,7 @@ A Windows desktop application (WinForms) that provides a one-stop GUI for variou
 
 ## Screenshots
 
-![MercClean GUI Screenshot](https://i.postimg.cc/zDn109YC/Screenshot-2025-02-06-123747.png)
-
+[![Screenshot-2025-08-08-024857.png](https://i.postimg.cc/Dy3cH3M4/Screenshot-2025-08-08-024857.png)](https://postimg.cc/rzgWR3cq)
 ---
 
 ## Requirements
