@@ -1,0 +1,4 @@
+C:\Users\Admin\Downloads\MyMaintenanceApp\obj\Debug\net9.0-windows\MyMaintenanceApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\Downloads\MyMaintenanceApp\obj\Debug\net9.0-windows\MyMaintenanceApp.AssemblyInfoInputs.cache
+C:\Users\Admin\Downloads\MyMaintenanceApp\obj\Debug\net9.0-windows\MyMaintenanceApp.AssemblyInfo.cs
+C:\Users\Admin\Downloads\MyMaintenanceApp\obj\Debug\net9.0-windows\MyMaintenanceApp.csproj.CoreCompileInputs.cache
