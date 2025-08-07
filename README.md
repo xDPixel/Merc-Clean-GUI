@@ -82,6 +82,7 @@ A Windows desktop application (WinForms) that provides a one-stop GUI for variou
 - **Selective Browser Cleaning**: Implemented separate controls for cache clearing vs. login data clearing, giving users full control over what gets removed
 - **Safety Confirmation System**: Added warning popup with explicit confirmation when attempting to clear sensitive login data
 - **Improved User Control**: Users can now safely clean browser cache without losing their saved passwords and login sessions
+- **Automatic Update Checking**: Added background update checking that compares current version with latest GitHub releases and notifies users when updates are available
 
 ### Additional Enhancements:
 - **Application Icon**: Added custom application icon that displays in the title bar, taskbar, and file explorer
