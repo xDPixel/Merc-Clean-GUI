@@ -78,7 +78,12 @@ A Windows desktop application (WinForms) that provides a one-stop GUI for variou
 
 ## Recent Updates
 
-### New Features:
+### Version 1.2.5 - Latest Features:
+- **Application Icon**: Added custom application icon that displays in the title bar, taskbar, and file explorer
+- **Dynamic Version Display**: Version number in the UI now automatically updates based on assembly version
+- **Improved Build System**: Enhanced standalone executable generation with proper icon integration
+
+### Previous Features:
 - **Browser Login Data Checkbox**: Added an optional checkbox for clearing browser login data (cookies, saved passwords, etc.)
 - **Warning Popup**: Safety confirmation dialog when attempting to clear login data
 - **Improved Code Organization**: Separated browser cache clearing from login data clearing for better control

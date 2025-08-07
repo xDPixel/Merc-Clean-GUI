@@ -10,9 +10,10 @@
     <AssemblyName>Merc-Clean-GUI</AssemblyName>
     <Product>Merc-Clean-GUI</Product>
     <AssemblyTitle>Merc-Clean-GUI</AssemblyTitle>
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
-    <FileVersion>1.2.0.0</FileVersion>
-    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.5.0</AssemblyVersion>
+    <FileVersion>1.2.5.0</FileVersion>
+    <Version>1.2.5</Version>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

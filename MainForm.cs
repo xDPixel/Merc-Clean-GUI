@@ -69,6 +69,16 @@ namespace MyMaintenanceApp
             this.FormBorderStyle = FormBorderStyle.FixedSingle; // Prevent resizing
             this.StartPosition = FormStartPosition.CenterScreen;
             this.BackColor = Color.FromArgb(30, 30, 30);
+            
+            // Set form icon
+            try
+            {
+                this.Icon = new Icon("icon.ico");
+            }
+            catch
+            {
+                // If icon file is not found, continue without icon
+            }
 
             // Status label (above terminal)
             lblStatus = new Label
@@ -312,7 +322,7 @@ namespace MyMaintenanceApp
             lblFooter = new Label
             {
                 Text = "Made By @DangerousPixel",
-                Location = new Point(350, 625),
+                Location = new Point(390, 625),
                 Size = new Size(200, 20),
                 Font = new Font("Arial", 10, FontStyle.Bold),
                 ForeColor = Color.Gray,
@@ -323,7 +333,7 @@ namespace MyMaintenanceApp
             // Version label (bottom right)
             Label lblVersion = new Label
             {
-                Text = "v1.2.0",
+                Text = $"v{Assembly.GetExecutingAssembly().GetName().Version.ToString(3)}",
                 Location = new Point(780, 625),
                 Size = new Size(100, 20),
                 Font = new Font("Arial", 9, FontStyle.Regular),
@@ -379,6 +389,24 @@ namespace MyMaintenanceApp
             };
             btnCredits.Click += (s, e) => ShowCreditsPopup();
             this.Controls.Add(btnCredits);
+
+            // GitHub Button
+            Button btnGitHub = new Button
+            {
+                Text = "GitHub",
+                Location = new Point(310, 620),
+                Size = new Size(70, 30),
+                BackColor = Color.FromArgb(50, 50, 50),
+                ForeColor = Color.White
+            };
+            btnGitHub.Click += (s, e) =>
+            {
+                Process.Start(new ProcessStartInfo("https://github.com/xDPixel")
+                {
+                    UseShellExecute = true
+                });
+            };
+            this.Controls.Add(btnGitHub);
         }
 
         /// <summary>
