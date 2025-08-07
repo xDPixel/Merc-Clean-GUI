@@ -370,3 +370,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Large standalone releases
+Release-Standalone/*.exe
