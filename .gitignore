@@ -371,5 +371,36 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Large standalone releases
-Release-Standalone/*.exe
+# Large standalone releases and build artifacts
+Release-Standalone/
+*.dll
+*.exe
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+
+# Exclude specific DLL patterns
+api-ms-win-*.dll
+clr*.dll
+coreclr.dll
+hostfxr.dll
+hostpolicy.dll
+mscor*.dll
+msquic.dll
+netstandard.dll
+sni.dll
+ucrtbase.dll
+vcruntime*.dll
+wpfgfx*.dll
+
+# System and framework DLLs
+System.*.dll
+Microsoft.*.dll
+Presentation*.dll
+Windows*.dll
+UIAutomation*.dll
+Accessibility.dll
+DirectWriteForwarder.dll
+PenImc*.dll
+ReachFramework.dll
+D3DCompiler*.dll
