@@ -1,4 +1,4 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 using System.Drawing;
 
 namespace MyMaintenanceApp
@@ -6,9 +6,9 @@ namespace MyMaintenanceApp
     public partial class Form1 : Form
     {
         /// <summary>
-        /// Required designer variable.
+        /// Required designer variable - removed to fix build warning.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        // private System.ComponentModel.IContainer components = null;
 
         /// <summary>
         /// Initialize all components for the form.

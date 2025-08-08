@@ -48,8 +48,7 @@ namespace MyMaintenanceApp
             // Dark themes
             var darkHeader = new ToolStripLabel("Dark Themes")
             {
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                ForeColor = Color.Gray
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
             };
             themeMenu.Items.Add(darkHeader);
             themeMenu.Items.Add(new ToolStripSeparator());
@@ -63,8 +62,7 @@ namespace MyMaintenanceApp
             // Light themes
             var lightHeader = new ToolStripLabel("Light Themes")
             {
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                ForeColor = Color.Gray
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
             };
             themeMenu.Items.Add(lightHeader);
             themeMenu.Items.Add(new ToolStripSeparator());
@@ -128,9 +126,20 @@ namespace MyMaintenanceApp
                 
                 foreach (ToolStripItem item in themeMenu.Items)
                 {
+                    if (item is ToolStripLabel label && (label.Text.Contains("Dark Themes") || label.Text.Contains("Light Themes")))
+                    {
+                        item.ForeColor = theme.TextSecondary;
+                        item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                    }
+                    else if (item is ToolStripMenuItem menuItem)
+                    {
+                        item.ForeColor = theme.TextPrimary;
+                    }
                     item.BackColor = theme.SecondaryBackground;
-                    item.ForeColor = theme.TextPrimary;
                 }
+                
+                // Force menu to refresh
+                themeMenu.Invalidate();
             }
         }
     }

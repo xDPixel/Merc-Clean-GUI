@@ -16,7 +16,7 @@ namespace MyMaintenanceApp
     public partial class MainForm : Form
     {
         // --- UI controls ---
-        private ModernTextBox txtTerminal;
+        private ModernTextBoxWithScrollbars txtTerminal;
         private ModernButton btnRunAll;
         private ModernButton btnSfcScan;
         private ModernButton btnDismCheckHealth;
@@ -28,6 +28,7 @@ namespace MyMaintenanceApp
         private ModernButton btnOptimizeDrives;
         private ModernButton btnClearDNS;
         private Label lblFooter;
+        private Label lblVersion;
         private ModernButton btnX;
         private ModernButton btnWebsite;
         private ModernButton btnCredits;
@@ -35,9 +36,7 @@ namespace MyMaintenanceApp
         private Label lblStatus;
         private ModernCheckBox chkClearLoginData;
         private ThemeSwitcher themeSwitcher;
-        private Panel headerPanel;
-        private Panel mainPanel;
-        private Panel footerPanel;
+        // Removed unused panel fields to fix build warnings
 
         // Current maintenance process (for kill)
         private Process currentProcess;
@@ -54,6 +53,13 @@ namespace MyMaintenanceApp
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
 
+            // Enable form rounded corners
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | 
+                         ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.Region = CreateRoundedRegion(this.ClientRectangle, 12);
+            this.Resize += (s, e) => this.Region = CreateRoundedRegion(this.ClientRectangle, 12);
+
             // Check for administrative privileges
             if (!IsUserAdministrator())
             {
@@ -62,7 +68,7 @@ namespace MyMaintenanceApp
                 Environment.Exit(1);
             }
 
-            UpdateStatus("Idle", Color.Gray);
+            UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             
             // Check for updates asynchronously
             _ = CheckForUpdatesAsync();
@@ -80,6 +86,8 @@ namespace MyMaintenanceApp
             {
                 txtTerminal.BackColor = theme.TerminalBackground;
                 txtTerminal.ForeColor = theme.TerminalText;
+                txtTerminal.ApplyTheme();
+                txtTerminal.Invalidate();
             }
             
             // Apply theme to status label
@@ -95,6 +103,81 @@ namespace MyMaintenanceApp
                 lblFooter.ForeColor = theme.TextSecondary;
                 lblFooter.BackColor = theme.PrimaryBackground;
             }
+            
+            // Apply theme to version label
+            if (lblVersion != null)
+            {
+                lblVersion.ForeColor = theme.TextSecondary;
+                lblVersion.BackColor = theme.PrimaryBackground;
+            }
+            
+            // Refresh form appearance
+            this.Invalidate();
+        }
+        
+        private Region CreateRoundedRegion(Rectangle rect, int radius)
+        {
+            using (var path = new GraphicsPath())
+            {
+                var diameter = radius * 2;
+                var size = new Size(diameter, diameter);
+                var arc = new Rectangle(rect.Location, size);
+
+                // Top left arc
+                path.AddArc(arc, 180, 90);
+
+                // Top right arc
+                arc.X = rect.Right - diameter;
+                path.AddArc(arc, 270, 90);
+
+                // Bottom right arc
+                arc.Y = rect.Bottom - diameter;
+                path.AddArc(arc, 0, 90);
+
+                // Bottom left arc
+                arc.X = rect.Left;
+                path.AddArc(arc, 90, 90);
+
+                path.CloseFigure();
+                return new Region(path);
+            }
+        }
+        
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            
+            var theme = ThemeManager.Current;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            
+            // Draw form border with rounded corners
+            using (var borderPen = new Pen(theme.BorderColor, 2))
+            using (var path = new GraphicsPath())
+            {
+                var rect = new Rectangle(1, 1, Width - 2, Height - 2);
+                var radius = 12;
+                var diameter = radius * 2;
+                var size = new Size(diameter, diameter);
+                var arc = new Rectangle(rect.Location, size);
+
+                // Top left arc
+                path.AddArc(arc, 180, 90);
+
+                // Top right arc
+                arc.X = rect.Right - diameter;
+                path.AddArc(arc, 270, 90);
+
+                // Bottom right arc
+                arc.Y = rect.Bottom - diameter;
+                path.AddArc(arc, 0, 90);
+
+                // Bottom left arc
+                arc.X = rect.Left;
+                path.AddArc(arc, 90, 90);
+
+                path.CloseFigure();
+                e.Graphics.DrawPath(borderPen, path);
+            }
         }
 
         private void InitializeComponent()
@@ -102,7 +185,6 @@ namespace MyMaintenanceApp
             // Basic form setup
             this.Text = "MercClean - GUI | By @DangerousPixel";
             this.Size = new Size(950, 720);
-            this.FormBorderStyle = FormBorderStyle.FixedSingle; // Prevent resizing
             this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
@@ -126,16 +208,13 @@ namespace MyMaintenanceApp
                 Location = new Point(20, 15),
                 Size = new Size(300, 25),
                 Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
-                ForeColor = Color.Gray,
                 TextAlign = ContentAlignment.MiddleLeft
             };
             this.Controls.Add(lblStatus);
 
             // Terminal-like TextBox
-            txtTerminal = new ModernTextBox
+            txtTerminal = new ModernTextBoxWithScrollbars
             {
-                Multiline = true,
-                ScrollBars = ScrollBars.Both,
                 ReadOnly = true,
                 Location = new Point(20, 60),
                 Size = new Size(900, 280),
@@ -167,10 +246,10 @@ namespace MyMaintenanceApp
             };
             btnSfcScan.Click += async (s, e) =>
             {
-                UpdateStatus("Running SFC Scan", Color.Green);
+                UpdateStatus("Running SFC Scan", ThemeManager.Current.SuccessColor);
                 AppendTerminal("Running SFC Scan...\r\n");
                 await RunCommandAsync("sfc", "/scannow");
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnSfcScan);
 
@@ -185,10 +264,10 @@ namespace MyMaintenanceApp
             };
             btnDismCheckHealth.Click += async (s, e) =>
             {
-                UpdateStatus("Running DISM CheckHealth", Color.Green);
+                UpdateStatus("Running DISM CheckHealth", ThemeManager.Current.SuccessColor);
                 AppendTerminal("Running DISM CheckHealth...\r\n");
                 await RunCommandAsync("DISM", "/online /Cleanup-Image /CheckHealth");
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnDismCheckHealth);
 
@@ -203,10 +282,10 @@ namespace MyMaintenanceApp
             };
             btnDismScanHealth.Click += async (s, e) =>
             {
-                UpdateStatus("Running DISM ScanHealth", Color.Green);
+                UpdateStatus("Running DISM ScanHealth", ThemeManager.Current.SuccessColor);
                 AppendTerminal("Running DISM ScanHealth...\r\n");
                 await RunCommandAsync("DISM", "/Online /Cleanup-Image /ScanHealth");
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnDismScanHealth);
 
@@ -221,10 +300,10 @@ namespace MyMaintenanceApp
             };
             btnDismRestoreHealth.Click += async (s, e) =>
             {
-                UpdateStatus("Running DISM RestoreHealth", Color.Green);
+                UpdateStatus("Running DISM RestoreHealth", ThemeManager.Current.SuccessColor);
                 AppendTerminal("Running DISM RestoreHealth...\r\n");
                 await RunCommandAsync("DISM", "/Online /Cleanup-Image /RestoreHealth");
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnDismRestoreHealth);
 
@@ -239,9 +318,9 @@ namespace MyMaintenanceApp
             };
             btnClearTemp.Click += (s, e) =>
             {
-                UpdateStatus("Running Clear Temp", Color.Green);
+                UpdateStatus("Running Clear Temp", ThemeManager.Current.SuccessColor);
                 ClearTempFiles();
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnClearTemp);
 
@@ -249,16 +328,16 @@ namespace MyMaintenanceApp
             btnClearCache = new ModernButton
             {
                 Text = "💾 Clear Cache",
-                Location = new Point(160, 420),
+                Location = new Point(150, 420),
                 Size = new Size(120, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 6
             };
             btnClearCache.Click += (s, e) =>
             {
-                UpdateStatus("Running Clear Cache", Color.Green);
+                UpdateStatus("Running Clear Cache", ThemeManager.Current.SuccessColor);
                 ClearBrowserCache();
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnClearCache);
 
@@ -266,16 +345,16 @@ namespace MyMaintenanceApp
             btnDiskCleanup = new ModernButton
             {
                 Text = "💿 Disk Cleanup",
-                Location = new Point(300, 420),
+                Location = new Point(280, 420),
                 Size = new Size(120, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 6
             };
             btnDiskCleanup.Click += async (s, e) =>
             {
-                UpdateStatus("Running Disk Cleanup", Color.Green);
+                UpdateStatus("Running Disk Cleanup", ThemeManager.Current.SuccessColor);
                 await RunDiskCleanup();
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnDiskCleanup);
 
@@ -283,16 +362,16 @@ namespace MyMaintenanceApp
             btnOptimizeDrives = new ModernButton
             {
                 Text = "⚡ Optimize Drives",
-                Location = new Point(440, 420),
+                Location = new Point(410, 420),
                 Size = new Size(120, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 6
             };
             btnOptimizeDrives.Click += async (s, e) =>
             {
-                UpdateStatus("Running Optimize Drives", Color.Green);
+                UpdateStatus("Running Optimize Drives", ThemeManager.Current.SuccessColor);
                 await OptimizeDrives();
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnOptimizeDrives);
 
@@ -300,16 +379,16 @@ namespace MyMaintenanceApp
             btnClearDNS = new ModernButton
             {
                 Text = "🌐 Clear DNS",
-                Location = new Point(580, 420),
+                Location = new Point(540, 420),
                 Size = new Size(120, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 6
             };
             btnClearDNS.Click += async (s, e) =>
             {
-                UpdateStatus("Running Clear DNS", Color.Green);
+                UpdateStatus("Running Clear DNS", ThemeManager.Current.SuccessColor);
                 await ClearDNSCache();
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             };
             this.Controls.Add(btnClearDNS);
 
@@ -317,8 +396,8 @@ namespace MyMaintenanceApp
             btnKillProcess = new ModernButton
             {
                 Text = "❌ Kill Process",
-                Location = new Point(720, 420),
-                Size = new Size(120, 40),
+                Location = new Point(670, 420),
+                Size = new Size(100, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 6
             };
@@ -330,8 +409,8 @@ namespace MyMaintenanceApp
             {
                 Text = "🔒 Clear Browser Login Data",
                 Location = new Point(20, 480),
-                Size = new Size(250, 30),
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                Size = new Size(200, 30),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 Checked = false // Disabled by default
             };
             chkClearLoginData.CheckedChanged += (s, e) =>
@@ -367,22 +446,20 @@ namespace MyMaintenanceApp
             lblFooter = new Label
             {
                 Text = "Made By @DangerousPixel",
-                Location = new Point(390, 625),
-                Size = new Size(200, 20),
+                Location = new Point(600, 625),
+                Size = new Size(150, 20),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
-                ForeColor = Color.Gray,
                 TextAlign = ContentAlignment.MiddleCenter
             };
             this.Controls.Add(lblFooter);
 
             // Version label (bottom right)
-            Label lblVersion = new Label
+            lblVersion = new Label
             {
                 Text = $"v{Assembly.GetExecutingAssembly().GetName().Version.ToString(3)}",
                 Location = new Point(780, 625),
                 Size = new Size(100, 20),
                 Font = new Font("Arial", 9, FontStyle.Regular),
-                ForeColor = Color.Gray,
                 TextAlign = ContentAlignment.MiddleRight
             };
             this.Controls.Add(lblVersion);
@@ -409,8 +486,8 @@ namespace MyMaintenanceApp
             btnWebsite = new ModernButton
             {
                 Text = "🌐 Website for iOS Mods",
-                Location = new Point(90, 620),
-                Size = new Size(180, 40),
+                Location = new Point(80, 620),
+                Size = new Size(170, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 8
             };
@@ -427,7 +504,7 @@ namespace MyMaintenanceApp
             btnCredits = new ModernButton
             {
                 Text = "👥 Credits",
-                Location = new Point(290, 620),
+                Location = new Point(260, 620),
                 Size = new Size(100, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 8
@@ -439,7 +516,7 @@ namespace MyMaintenanceApp
             ModernButton btnGitHub = new ModernButton
             {
                 Text = "🐙 GitHub",
-                Location = new Point(410, 620),
+                Location = new Point(370, 620),
                 Size = new Size(100, 40),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BorderRadius = 8
@@ -511,7 +588,7 @@ namespace MyMaintenanceApp
                 currentProcess = null;
                 // We won't re-enable here (avoids double "Buttons re-enabled").
                 // The ongoing command or "Run All" flow will finalize and re-enable.
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             }
         }
 
@@ -576,7 +653,7 @@ namespace MyMaintenanceApp
             try
             {
                 ToggleButtons(false);
-                UpdateStatus("Running All Tasks", Color.Green);
+                UpdateStatus("Running All Tasks", ThemeManager.Current.SuccessColor);
                 cancellationRequested = false;
 
                 // (1) SFC
@@ -600,32 +677,32 @@ namespace MyMaintenanceApp
                 if (cancellationRequested) return;
 
                 // (5) Clear Temp
-                UpdateStatus("Running Clear Temp", Color.Green);
+                UpdateStatus("Running Clear Temp", ThemeManager.Current.SuccessColor);
                 ClearTempFiles();
                 if (cancellationRequested) return;
 
                 // (6) Clear Browser Cache
-                UpdateStatus("Running Clear Cache", Color.Green);
+                UpdateStatus("Running Clear Cache", ThemeManager.Current.SuccessColor);
                 ClearBrowserCache();
                 if (cancellationRequested) return;
 
                 // (7) Disk Cleanup
-                UpdateStatus("Running Disk Cleanup", Color.Green);
+                UpdateStatus("Running Disk Cleanup", ThemeManager.Current.SuccessColor);
                 await RunDiskCleanup();
                 if (cancellationRequested) return;
 
                 // (8) Optimize Drives
-                UpdateStatus("Running Optimize Drives", Color.Green);
+                UpdateStatus("Running Optimize Drives", ThemeManager.Current.SuccessColor);
                 await OptimizeDrives();
                 if (cancellationRequested) return;
 
                 // (9) Clear DNS
-                UpdateStatus("Running Clear DNS", Color.Green);
+                UpdateStatus("Running Clear DNS", ThemeManager.Current.SuccessColor);
                 await ClearDNSCache();
                 if (cancellationRequested) return;
 
                 AppendTerminal("All tasks completed.\r\n");
-                UpdateStatus("Idle", Color.Gray);
+                UpdateStatus("Idle", ThemeManager.Current.TextSecondary);
             }
             catch (Exception ex)
             {

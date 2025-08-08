@@ -39,6 +39,7 @@ namespace MyMaintenanceApp
     public static class ThemeManager
     {
         public static event EventHandler<ThemeType> ThemeChanged;
+        public static event EventHandler ThemeApplied;
         private static ThemeType _currentTheme = ThemeType.DarkModern;
 
         public static ThemeType CurrentTheme
@@ -46,8 +47,12 @@ namespace MyMaintenanceApp
             get => _currentTheme;
             set
             {
-                _currentTheme = value;
-                ThemeChanged?.Invoke(null, value);
+                if (_currentTheme != value)
+                {
+                    _currentTheme = value;
+                    ThemeChanged?.Invoke(null, value);
+                    ThemeApplied?.Invoke(null, EventArgs.Empty);
+                }
             }
         }
 
