@@ -2,421 +2,586 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using System.ComponentModel;
 
-namespace MyMaintenanceApp
+public class ModernButton : Button
 {
-    public class ModernButton : Button
+    public int BorderRadius { get; set; } = 10;
+
+    public ModernButton()
     {
-        private int borderRadius = 8;
-        private Color hoverColor;
-        private Color normalColor;
-        private bool isHovered = false;
-        private Timer animationTimer;
-        private float animationProgress = 0f;
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+        FlatStyle = FlatStyle.Flat;
+        FlatAppearance.BorderSize = 0;
+    }
 
-        public int BorderRadius
+    public void ApplyTheme(Theme theme)
+    {
+        BackColor = theme.ButtonBackground;
+        ForeColor = theme.ButtonText;
+        FlatAppearance.MouseOverBackColor = theme.ButtonHover;
+        FlatAppearance.MouseDownBackColor = theme.ButtonPressed;
+        Invalidate();
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+
+        // Create rounded rectangle path
+        GraphicsPath path = CreateRoundedRectangle(ClientRectangle, BorderRadius);
+
+        // Fill background
+        using (SolidBrush brush = new SolidBrush(BackColor))
         {
-            get => borderRadius;
-            set { borderRadius = value; Invalidate(); }
+            g.FillPath(brush, path);
         }
 
-        public ModernButton()
+        // Draw text
+        TextRenderer.DrawText(g, Text, Font, ClientRectangle, ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+
+        path.Dispose();
+    }
+
+    private GraphicsPath CreateRoundedRectangle(Rectangle rect, int radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        int diameter = radius * 2;
+
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+
+        return path;
+    }
+}
+
+public class ModernTextBox : TextBox
+{
+    public int BorderRadius { get; set; } = 5;
+    private bool _focused = false;
+
+    public ModernTextBox()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+        BorderStyle = BorderStyle.None;
+        Padding = new Padding(10, 8, 10, 8);
+    }
+
+    public void ApplyTheme(Theme theme)
+    {
+        BackColor = theme.InputBackground;
+        ForeColor = theme.InputText;
+        Invalidate();
+    }
+
+    protected override void OnEnter(EventArgs e)
+    {
+        _focused = true;
+        Invalidate();
+        base.OnEnter(e);
+    }
+
+    protected override void OnLeave(EventArgs e)
+    {
+        _focused = false;
+        Invalidate();
+        base.OnLeave(e);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+
+        // Create rounded rectangle path
+        GraphicsPath path = CreateRoundedRectangle(ClientRectangle, BorderRadius);
+
+        // Fill background
+        using (SolidBrush brush = new SolidBrush(BackColor))
         {
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint |
-                    ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
-            
-            FlatStyle = FlatStyle.Flat;
-            FlatAppearance.BorderSize = 0;
-            Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
-            Cursor = Cursors.Hand;
-            
-            animationTimer = new Timer { Interval = 16 };
-            animationTimer.Tick += AnimationTimer_Tick;
-            
-            ApplyTheme();
-            ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
+            g.FillPath(brush, path);
         }
 
-        private void ApplyTheme()
+        // Draw border
+        Color borderColor = _focused ? ThemeManager.Current.Accent : ThemeManager.Current.Border;
+        using (Pen pen = new Pen(borderColor, 2))
         {
-            var theme = ThemeManager.Current;
-            normalColor = theme.ButtonBackground;
-            hoverColor = theme.ButtonHover;
-            BackColor = normalColor;
-            ForeColor = theme.TextPrimary;
-            FlatAppearance.BorderColor = theme.BorderColor;
+            g.DrawPath(pen, path);
         }
 
-        protected override void OnMouseEnter(EventArgs e)
+        // Draw text
+        Rectangle textRect = new Rectangle(Padding.Left, Padding.Top, Width - Padding.Horizontal, Height - Padding.Vertical);
+        TextRenderer.DrawText(g, Text, Font, textRect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+
+        path.Dispose();
+    }
+
+    private GraphicsPath CreateRoundedRectangle(Rectangle rect, int radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        int diameter = radius * 2;
+
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+
+        return path;
+    }
+}
+
+public class ModernComboBox : ComboBox
+{
+    public int BorderRadius { get; set; } = 5;
+    private bool _focused = false;
+
+    public ModernComboBox()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+        DrawMode = DrawMode.OwnerDrawFixed;
+        DropDownStyle = ComboBoxStyle.DropDownList;
+        FlatStyle = FlatStyle.Flat;
+    }
+
+    public void ApplyTheme(Theme theme)
+    {
+        BackColor = theme.InputBackground;
+        ForeColor = theme.InputText;
+        Invalidate();
+    }
+
+    protected override void OnEnter(EventArgs e)
+    {
+        _focused = true;
+        Invalidate();
+        base.OnEnter(e);
+    }
+
+    protected override void OnLeave(EventArgs e)
+    {
+        _focused = false;
+        Invalidate();
+        base.OnLeave(e);
+    }
+
+    protected override void OnDrawItem(DrawItemEventArgs e)
+    {
+        if (e.Index >= 0)
         {
-            base.OnMouseEnter(e);
-            isHovered = true;
-            StartAnimation();
-        }
-
-        protected override void OnMouseLeave(EventArgs e)
-        {
-            base.OnMouseLeave(e);
-            isHovered = false;
-            StartAnimation();
-        }
-
-        private void StartAnimation()
-        {
-            animationTimer.Start();
-        }
-
-        private void AnimationTimer_Tick(object sender, EventArgs e)
-        {
-            if (isHovered && animationProgress < 1f)
-            {
-                animationProgress += 0.1f;
-            }
-            else if (!isHovered && animationProgress > 0f)
-            {
-                animationProgress -= 0.1f;
-            }
-            else
-            {
-                animationTimer.Stop();
-                return;
-            }
-
-            animationProgress = Math.Max(0f, Math.Min(1f, animationProgress));
-            Invalidate();
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-
-            // Interpolate colors for smooth animation
-            var currentColor = InterpolateColor(normalColor, hoverColor, animationProgress);
-            
-            using (var path = GetRoundedRectanglePath(ClientRectangle, borderRadius))
-            using (var brush = new SolidBrush(currentColor))
-            {
-                e.Graphics.FillPath(brush, path);
-            }
-
-            // Draw text
-            var textRect = ClientRectangle;
-            var textFlags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
-            TextRenderer.DrawText(e.Graphics, Text, Font, textRect, ForeColor, textFlags);
-        }
-
-        private Color InterpolateColor(Color color1, Color color2, float progress)
-        {
-            var r = (int)(color1.R + (color2.R - color1.R) * progress);
-            var g = (int)(color1.G + (color2.G - color1.G) * progress);
-            var b = (int)(color1.B + (color2.B - color1.B) * progress);
-            return Color.FromArgb(r, g, b);
-        }
-
-        private GraphicsPath GetRoundedRectanglePath(Rectangle rect, int radius)
-        {
-            var path = new GraphicsPath();
-            var diameter = radius * 2;
-            var size = new Size(diameter, diameter);
-            var arc = new Rectangle(rect.Location, size);
-
-            // Top left arc
-            path.AddArc(arc, 180, 90);
-
-            // Top right arc
-            arc.X = rect.Right - diameter;
-            path.AddArc(arc, 270, 90);
-
-            // Bottom right arc
-            arc.Y = rect.Bottom - diameter;
-            path.AddArc(arc, 0, 90);
-
-            // Bottom left arc
-            arc.X = rect.Left;
-            path.AddArc(arc, 90, 90);
-
-            path.CloseFigure();
-            return path;
+            e.Graphics.FillRectangle(new SolidBrush(BackColor), e.Bounds);
+            e.Graphics.DrawString(Items[e.Index].ToString(), Font, new SolidBrush(ForeColor), e.Bounds);
         }
     }
 
-    public class ModernCheckBox : CheckBox
+    protected override void OnPaint(PaintEventArgs e)
     {
-        private int checkBoxSize = 18;
-        private int borderRadius = 4;
-        private bool isHovered = false;
-        private Timer animationTimer;
-        private float animationProgress = 0f;
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
 
-        public int CheckBoxSize
+        // Create rounded rectangle path
+        GraphicsPath path = CreateRoundedRectangle(ClientRectangle, BorderRadius);
+
+        // Fill background
+        using (SolidBrush brush = new SolidBrush(BackColor))
         {
-            get => checkBoxSize;
-            set { checkBoxSize = value; Invalidate(); }
+            g.FillPath(brush, path);
         }
 
-        public int BorderRadius
+        // Draw border
+        Color borderColor = _focused ? ThemeManager.Current.Accent : ThemeManager.Current.Border;
+        using (Pen pen = new Pen(borderColor, 2))
         {
-            get => borderRadius;
-            set { borderRadius = value; Invalidate(); }
+            g.DrawPath(pen, path);
         }
 
-        public ModernCheckBox()
+        // Draw text
+        if (SelectedIndex >= 0)
         {
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint |
-                    ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
+            Rectangle textRect = new Rectangle(10, 0, Width - 30, Height);
+            TextRenderer.DrawText(g, Items[SelectedIndex].ToString(), Font, textRect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        }
+
+        // Draw dropdown arrow
+        Rectangle arrowRect = new Rectangle(Width - 20, Height / 2 - 3, 10, 6);
+        Point[] arrow = {
+            new Point(arrowRect.Left, arrowRect.Top),
+            new Point(arrowRect.Right, arrowRect.Top),
+            new Point(arrowRect.Left + arrowRect.Width / 2, arrowRect.Bottom)
+        };
+        using (SolidBrush brush = new SolidBrush(ForeColor))
+        {
+            g.FillPolygon(brush, arrow);
+        }
+
+        path.Dispose();
+    }
+
+    private GraphicsPath CreateRoundedRectangle(Rectangle rect, int radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        int diameter = radius * 2;
+
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+
+        return path;
+    }
+}
+
+public class ModernProgressBar : ProgressBar
+{
+    public int BorderRadius { get; set; } = 10;
+
+    public ModernProgressBar()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+    }
+
+    public void ApplyTheme(Theme theme)
+    {
+        BackColor = theme.ProgressBarBackground;
+        ForeColor = theme.Accent;
+        Invalidate();
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+
+        // Background
+        using (SolidBrush brush = new SolidBrush(BackColor))
+        {
+            GraphicsPath bgPath = CreateRoundedRectangle(ClientRectangle, BorderRadius);
+            g.FillPath(brush, bgPath);
+            bgPath.Dispose();
+        }
+
+        // Progress
+        if (Value > 0)
+        {
+            int progressWidth = (int)((double)Value / Maximum * Width);
+            Rectangle progressRect = new Rectangle(0, 0, progressWidth, Height);
             
-            Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
-            Cursor = Cursors.Hand;
-            
-            animationTimer = new Timer { Interval = 16 };
-            animationTimer.Tick += AnimationTimer_Tick;
-            
-            ApplyTheme();
-            ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
-        }
-
-        private void ApplyTheme()
-        {
-            var theme = ThemeManager.Current;
-            ForeColor = theme.TextPrimary;
-            BackColor = theme.PrimaryBackground;
-        }
-
-        protected override void OnMouseEnter(EventArgs e)
-        {
-            base.OnMouseEnter(e);
-            isHovered = true;
-            StartAnimation();
-        }
-
-        protected override void OnMouseLeave(EventArgs e)
-        {
-            base.OnMouseLeave(e);
-            isHovered = false;
-            StartAnimation();
-        }
-
-        private void StartAnimation()
-        {
-            animationTimer.Start();
-        }
-
-        private void AnimationTimer_Tick(object sender, EventArgs e)
-        {
-            if (isHovered && animationProgress < 1f)
+            using (SolidBrush brush = new SolidBrush(ForeColor))
             {
-                animationProgress += 0.15f;
+                GraphicsPath progressPath = CreateRoundedRectangle(progressRect, BorderRadius);
+                g.FillPath(brush, progressPath);
+                progressPath.Dispose();
             }
-            else if (!isHovered && animationProgress > 0f)
-            {
-                animationProgress -= 0.15f;
-            }
-            else
-            {
-                animationTimer.Stop();
-                return;
-            }
-
-            animationProgress = Math.Max(0f, Math.Min(1f, animationProgress));
-            Invalidate();
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-
-            var theme = ThemeManager.Current;
-            var checkBoxRect = new Rectangle(0, (Height - checkBoxSize) / 2, checkBoxSize, checkBoxSize);
-            var textRect = new Rectangle(checkBoxSize + 8, 0, Width - checkBoxSize - 8, Height);
-
-            // Draw checkbox background
-            using (var path = GetRoundedRectanglePath(checkBoxRect, borderRadius))
-            {
-                var bgColor = Checked ? theme.AccentColor : theme.ButtonBackground;
-                if (isHovered)
-                {
-                    var hoverColor = Checked ? 
-                        Color.FromArgb(Math.Min(255, theme.AccentColor.R + 20), 
-                                     Math.Min(255, theme.AccentColor.G + 20), 
-                                     Math.Min(255, theme.AccentColor.B + 20)) :
-                        theme.ButtonHover;
-                    bgColor = InterpolateColor(bgColor, hoverColor, animationProgress);
-                }
-                
-                using (var brush = new SolidBrush(bgColor))
-                {
-                    e.Graphics.FillPath(brush, path);
-                }
-
-                // Draw border
-                using (var pen = new Pen(theme.BorderColor, 1))
-                {
-                    e.Graphics.DrawPath(pen, path);
-                }
-            }
-
-            // Draw checkmark
-            if (Checked)
-            {
-                var checkColor = theme.IsDark ? Color.White : Color.White;
-                using (var pen = new Pen(checkColor, 2))
-                {
-                    var checkPoints = new Point[]
-                    {
-                        new Point(checkBoxRect.X + 4, checkBoxRect.Y + checkBoxRect.Height / 2),
-                        new Point(checkBoxRect.X + checkBoxRect.Width / 2, checkBoxRect.Y + checkBoxRect.Height - 5),
-                        new Point(checkBoxRect.X + checkBoxRect.Width - 3, checkBoxRect.Y + 3)
-                    };
-                    e.Graphics.DrawLines(pen, checkPoints);
-                }
-            }
-
-            // Draw text
-            var textFlags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter;
-            TextRenderer.DrawText(e.Graphics, Text, Font, textRect, ForeColor, textFlags);
-        }
-
-        private Color InterpolateColor(Color color1, Color color2, float progress)
-        {
-            var r = (int)(color1.R + (color2.R - color1.R) * progress);
-            var g = (int)(color1.G + (color2.G - color1.G) * progress);
-            var b = (int)(color1.B + (color2.B - color1.B) * progress);
-            return Color.FromArgb(r, g, b);
-        }
-
-        private GraphicsPath GetRoundedRectanglePath(Rectangle rect, int radius)
-        {
-            var path = new GraphicsPath();
-            var diameter = radius * 2;
-            var size = new Size(diameter, diameter);
-            var arc = new Rectangle(rect.Location, size);
-
-            if (radius == 0)
-            {
-                path.AddRectangle(rect);
-                return path;
-            }
-
-            // Top left arc
-            path.AddArc(arc, 180, 90);
-
-            // Top right arc
-            arc.X = rect.Right - diameter;
-            path.AddArc(arc, 270, 90);
-
-            // Bottom right arc
-            arc.Y = rect.Bottom - diameter;
-            path.AddArc(arc, 0, 90);
-
-            // Bottom left arc
-            arc.X = rect.Left;
-            path.AddArc(arc, 90, 90);
-
-            path.CloseFigure();
-            return path;
         }
     }
 
-    public class ModernTextBox : TextBox
+    private GraphicsPath CreateRoundedRectangle(Rectangle rect, int radius)
     {
-        private int borderRadius = 6;
-        private bool isFocused = false;
+        GraphicsPath path = new GraphicsPath();
+        int diameter = radius * 2;
 
-        public int BorderRadius
-        {
-            get => borderRadius;
-            set { borderRadius = value; Invalidate(); }
-        }
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
 
-        public ModernTextBox()
-        {
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint |
-                    ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
-            
-            BorderStyle = BorderStyle.None;
-            Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
-            
-            ApplyTheme();
-            ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
-        }
+        return path;
+    }
+}
 
-        private void ApplyTheme()
-        {
-            var theme = ThemeManager.Current;
-            BackColor = theme.SecondaryBackground;
-            ForeColor = theme.TextPrimary;
-        }
+public class ModernRichTextBox : RichTextBox
+{
+    public int BorderRadius { get; set; } = 5;
+    private bool _focused = false;
 
-        protected override void OnEnter(EventArgs e)
-        {
-            base.OnEnter(e);
-            isFocused = true;
-            Invalidate();
-        }
+    public ModernRichTextBox()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+        BorderStyle = BorderStyle.None;
+        ScrollBars = RichTextBoxScrollBars.None;
+    }
 
-        protected override void OnLeave(EventArgs e)
-        {
-            base.OnLeave(e);
-            isFocused = false;
-            Invalidate();
-        }
+    public void ApplyTheme(Theme theme)
+    {
+        BackColor = theme.TerminalBackground;
+        ForeColor = theme.TerminalText;
+        Invalidate();
+    }
 
-        protected override void OnPaint(PaintEventArgs e)
+    public void ApplyThemeToAllText()
+    {
+        // Save current selection
+        int selectionStart = SelectionStart;
+        int selectionLength = SelectionLength;
+        
+        // Select all text and apply theme colors
+        SelectAll();
+        SelectionColor = ThemeManager.Current.TerminalText;
+        SelectionBackColor = ThemeManager.Current.TerminalBackground;
+        
+        // Restore original selection
+        Select(selectionStart, selectionLength);
+        
+        // Update control colors
+        BackColor = ThemeManager.Current.TerminalBackground;
+        ForeColor = ThemeManager.Current.TerminalText;
+    }
+
+    protected override void OnEnter(EventArgs e)
+    {
+        _focused = true;
+        Invalidate();
+        base.OnEnter(e);
+    }
+
+    protected override void OnLeave(EventArgs e)
+    {
+        _focused = false;
+        Invalidate();
+        base.OnLeave(e);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+    }
+
+    private GraphicsPath CreateRoundedRectangle(Rectangle rect, int radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        int diameter = radius * 2;
+
+        if (diameter > rect.Width) diameter = rect.Width;
+        if (diameter > rect.Height) diameter = rect.Height;
+
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+
+        return path;
+    }
+}
+
+public class ModernPanel : Panel
+{
+    public int BorderRadius { get; set; } = 10;
+    public Color BorderColor { get; set; } = Color.Transparent;
+    public int BorderWidth { get; set; } = 1;
+    public bool EnableGradient { get; set; } = false;
+    public Color GradientStartColor { get; set; } = Color.White;
+    public Color GradientEndColor { get; set; } = Color.LightGray;
+    public LinearGradientMode GradientDirection { get; set; } = LinearGradientMode.Vertical;
+
+    public ModernPanel()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+    }
+
+    public void ApplyTheme(Theme theme)
+    {
+        BackColor = theme.PanelBackground;
+        BorderColor = theme.Border;
+        Invalidate();
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+
+        Rectangle rect = new Rectangle(0, 0, Width - 1, Height - 1);
+        GraphicsPath path = CreateRoundedRectangle(rect, BorderRadius);
+
+        // Fill background
+        if (EnableGradient)
         {
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            
-            var theme = ThemeManager.Current;
-            var borderColor = isFocused ? theme.AccentColor : theme.BorderColor;
-            var borderWidth = isFocused ? 2 : 1;
-            
-            using (var path = GetRoundedRectanglePath(ClientRectangle, borderRadius))
-            using (var brush = new SolidBrush(BackColor))
-            using (var pen = new Pen(borderColor, borderWidth))
+            using (LinearGradientBrush brush = new LinearGradientBrush(rect, GradientStartColor, GradientEndColor, GradientDirection))
             {
-                e.Graphics.FillPath(brush, path);
-                e.Graphics.DrawPath(pen, path);
+                g.FillPath(brush, path);
             }
-
-            // Draw text manually
-            var textRect = new Rectangle(8, 0, Width - 16, Height);
-            var textFlags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter;
-            var displayText = string.IsNullOrEmpty(Text) ? "" : Text;
-            TextRenderer.DrawText(e.Graphics, displayText, Font, textRect, ForeColor, textFlags);
         }
-
-        private GraphicsPath GetRoundedRectanglePath(Rectangle rect, int radius)
+        else
         {
-            var path = new GraphicsPath();
-            var diameter = radius * 2;
-            var size = new Size(diameter, diameter);
-            var arc = new Rectangle(rect.Location, size);
-
-            if (radius == 0)
+            using (SolidBrush brush = new SolidBrush(BackColor))
             {
-                path.AddRectangle(rect);
-                return path;
+                g.FillPath(brush, path);
             }
-
-            // Top left arc
-            path.AddArc(arc, 180, 90);
-
-            // Top right arc
-            arc.X = rect.Right - diameter;
-            path.AddArc(arc, 270, 90);
-
-            // Bottom right arc
-            arc.Y = rect.Bottom - diameter;
-            path.AddArc(arc, 0, 90);
-
-            // Bottom left arc
-            arc.X = rect.Left;
-            path.AddArc(arc, 90, 90);
-
-            path.CloseFigure();
-            return path;
         }
+
+        // Draw border
+        if (BorderWidth > 0 && BorderColor != Color.Transparent)
+        {
+            using (Pen pen = new Pen(BorderColor, BorderWidth))
+            {
+                g.DrawPath(pen, path);
+            }
+        }
+
+        path.Dispose();
+    }
+
+    private GraphicsPath CreateRoundedRectangle(Rectangle rect, int radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        int diameter = radius * 2;
+
+        if (diameter > rect.Width) diameter = rect.Width;
+        if (diameter > rect.Height) diameter = rect.Height;
+
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+
+        return path;
+    }
+}
+
+public class ModernLabel : Label
+{
+    public bool EnableGlow { get; set; } = false;
+    public Color GlowColor { get; set; } = Color.White;
+    public int GlowSize { get; set; } = 2;
+
+    public ModernLabel()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+    }
+
+    public void ApplyTheme(Theme theme)
+    {
+        ForeColor = theme.Text;
+        BackColor = Color.Transparent;
+        Invalidate();
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+        if (EnableGlow)
+        {
+            // Draw glow effect
+            for (int i = 1; i <= GlowSize; i++)
+            {
+                using (SolidBrush glowBrush = new SolidBrush(Color.FromArgb(50 / i, GlowColor)))
+                {
+                    g.DrawString(Text, Font, glowBrush, new PointF(i, i));
+                    g.DrawString(Text, Font, glowBrush, new PointF(-i, i));
+                    g.DrawString(Text, Font, glowBrush, new PointF(i, -i));
+                    g.DrawString(Text, Font, glowBrush, new PointF(-i, -i));
+                }
+            }
+        }
+
+        // Draw main text
+        using (SolidBrush textBrush = new SolidBrush(ForeColor))
+        {
+            g.DrawString(Text, Font, textBrush, new PointF(0, 0));
+        }
+    }
+}
+
+public class ModernCheckBox : CheckBox
+{
+    public int BorderRadius { get; set; } = 3;
+    private bool _hovered = false;
+
+    public ModernCheckBox()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.ResizeRedraw, true);
+        FlatStyle = FlatStyle.Flat;
+    }
+
+    public void ApplyTheme(Theme theme)
+    {
+        ForeColor = theme.Text;
+        BackColor = Color.Transparent;
+        Invalidate();
+    }
+
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        _hovered = true;
+        Invalidate();
+        base.OnMouseEnter(e);
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        _hovered = false;
+        Invalidate();
+        base.OnMouseLeave(e);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+
+        // Calculate checkbox rectangle
+        Rectangle checkRect = new Rectangle(0, (Height - 16) / 2, 16, 16);
+        Rectangle textRect = new Rectangle(22, 0, Width - 22, Height);
+
+        // Draw checkbox background
+        Color bgColor = _hovered ? ThemeManager.Current.ButtonHover : ThemeManager.Current.InputBackground;
+        using (SolidBrush brush = new SolidBrush(bgColor))
+        {
+            GraphicsPath path = CreateRoundedRectangle(checkRect, BorderRadius);
+            g.FillPath(brush, path);
+            path.Dispose();
+        }
+
+        // Draw checkbox border
+        Color borderColor = _hovered ? ThemeManager.Current.Accent : ThemeManager.Current.Border;
+        using (Pen pen = new Pen(borderColor, 1))
+        {
+            GraphicsPath path = CreateRoundedRectangle(checkRect, BorderRadius);
+            g.DrawPath(pen, path);
+            path.Dispose();
+        }
+
+        // Draw checkmark if checked
+        if (Checked)
+        {
+            using (Pen pen = new Pen(ThemeManager.Current.Accent, 2))
+            {
+                g.DrawLines(pen, new Point[] {
+                    new Point(checkRect.X + 3, checkRect.Y + 8),
+                    new Point(checkRect.X + 6, checkRect.Y + 11),
+                    new Point(checkRect.X + 12, checkRect.Y + 5)
+                });
+            }
+        }
+
+        // Draw text
+        TextRenderer.DrawText(g, Text, Font, textRect, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+    }
+
+    private GraphicsPath CreateRoundedRectangle(Rectangle rect, int radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        int diameter = radius * 2;
+
+        if (diameter > rect.Width) diameter = rect.Width;
+        if (diameter > rect.Height) diameter = rect.Height;
+
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+
+        return path;
     }
 }
