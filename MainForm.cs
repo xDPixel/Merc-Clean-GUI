@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -15,24 +16,28 @@ namespace MyMaintenanceApp
     public partial class MainForm : Form
     {
         // --- UI controls ---
-        private TextBox txtTerminal;
-        private Button btnRunAll;
-        private Button btnSfcScan;
-        private Button btnDismCheckHealth;
-        private Button btnDismScanHealth;
-        private Button btnDismRestoreHealth;
-        private Button btnClearTemp;
-        private Button btnClearCache;
-        private Button btnDiskCleanup;
-        private Button btnOptimizeDrives;
-        private Button btnClearDNS;
+        private ModernTextBox txtTerminal;
+        private ModernButton btnRunAll;
+        private ModernButton btnSfcScan;
+        private ModernButton btnDismCheckHealth;
+        private ModernButton btnDismScanHealth;
+        private ModernButton btnDismRestoreHealth;
+        private ModernButton btnClearTemp;
+        private ModernButton btnClearCache;
+        private ModernButton btnDiskCleanup;
+        private ModernButton btnOptimizeDrives;
+        private ModernButton btnClearDNS;
         private Label lblFooter;
-        private Button btnX;
-        private Button btnWebsite;
-        private Button btnCredits;
-        private Button btnKillProcess;
+        private ModernButton btnX;
+        private ModernButton btnWebsite;
+        private ModernButton btnCredits;
+        private ModernButton btnKillProcess;
         private Label lblStatus;
-        private CheckBox chkClearLoginData;
+        private ModernCheckBox chkClearLoginData;
+        private ThemeSwitcher themeSwitcher;
+        private Panel headerPanel;
+        private Panel mainPanel;
+        private Panel footerPanel;
 
         // Current maintenance process (for kill)
         private Process currentProcess;
@@ -46,6 +51,8 @@ namespace MyMaintenanceApp
         public MainForm()
         {
             InitializeComponent();
+            ApplyTheme();
+            ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
 
             // Check for administrative privileges
             if (!IsUserAdministrator())
@@ -61,14 +68,46 @@ namespace MyMaintenanceApp
             _ = CheckForUpdatesAsync();
         }
 
+        private void ApplyTheme()
+        {
+            var theme = ThemeManager.Current;
+            
+            // Apply theme to form
+            this.BackColor = theme.PrimaryBackground;
+            
+            // Apply theme to terminal
+            if (txtTerminal != null)
+            {
+                txtTerminal.BackColor = theme.TerminalBackground;
+                txtTerminal.ForeColor = theme.TerminalText;
+            }
+            
+            // Apply theme to status label
+            if (lblStatus != null)
+            {
+                lblStatus.ForeColor = theme.TextPrimary;
+                lblStatus.BackColor = theme.PrimaryBackground;
+            }
+            
+            // Apply theme to footer label
+            if (lblFooter != null)
+            {
+                lblFooter.ForeColor = theme.TextSecondary;
+                lblFooter.BackColor = theme.PrimaryBackground;
+            }
+        }
+
         private void InitializeComponent()
         {
             // Basic form setup
             this.Text = "MercClean - GUI | By @DangerousPixel";
-            this.Size = new Size(900, 700);
+            this.Size = new Size(950, 720);
             this.FormBorderStyle = FormBorderStyle.FixedSingle; // Prevent resizing
+            this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.BackColor = Color.FromArgb(30, 30, 30);
+            this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | 
+                         ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
             
             // Set form icon
             try
@@ -84,48 +123,47 @@ namespace MyMaintenanceApp
             lblStatus = new Label
             {
                 Text = "Status: Idle",
-                Location = new Point(10, 10),
-                Size = new Size(300, 20),
-                Font = new Font("Arial", 10, FontStyle.Bold),
+                Location = new Point(20, 15),
+                Size = new Size(300, 25),
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
                 ForeColor = Color.Gray,
                 TextAlign = ContentAlignment.MiddleLeft
             };
             this.Controls.Add(lblStatus);
 
             // Terminal-like TextBox
-            txtTerminal = new TextBox
+            txtTerminal = new ModernTextBox
             {
                 Multiline = true,
                 ScrollBars = ScrollBars.Both,
                 ReadOnly = true,
-                Location = new Point(10, 40),
-                Size = new Size(760, 320),
-                Font = new Font("Consolas", 10),
-                BackColor = Color.FromArgb(40, 40, 40),
-                ForeColor = Color.White
+                Location = new Point(20, 60),
+                Size = new Size(900, 280),
+                Font = new Font("Consolas", 10F),
+                BorderRadius = 8
             };
             this.Controls.Add(txtTerminal);
 
             // Run All
-            btnRunAll = new Button
+            btnRunAll = new ModernButton
             {
-                Text = "Run All",
-                Location = new Point(10, 370),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🚀 Run All",
+                Location = new Point(20, 360),
+                Size = new Size(140, 45),
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                BorderRadius = 10
             };
             btnRunAll.Click += async (s, e) => await RunAllTasksAsync();
             this.Controls.Add(btnRunAll);
 
             // SFC Scan
-            btnSfcScan = new Button
+            btnSfcScan = new ModernButton
             {
-                Text = "SFC Scan",
-                Location = new Point(100, 370),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🔧 SFC Scan",
+                Location = new Point(180, 360),
+                Size = new Size(120, 45),
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                BorderRadius = 8
             };
             btnSfcScan.Click += async (s, e) =>
             {
@@ -137,13 +175,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnSfcScan);
 
             // DISM CheckHealth
-            btnDismCheckHealth = new Button
+            btnDismCheckHealth = new ModernButton
             {
-                Text = "DISM CheckHealth",
-                Location = new Point(190, 370),
-                Size = new Size(120, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🩺 DISM Check",
+                Location = new Point(320, 360),
+                Size = new Size(120, 45),
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                BorderRadius = 8
             };
             btnDismCheckHealth.Click += async (s, e) =>
             {
@@ -155,13 +193,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnDismCheckHealth);
 
             // DISM ScanHealth
-            btnDismScanHealth = new Button
+            btnDismScanHealth = new ModernButton
             {
-                Text = "DISM ScanHealth",
-                Location = new Point(320, 370),
-                Size = new Size(120, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🔍 DISM Scan",
+                Location = new Point(460, 360),
+                Size = new Size(120, 45),
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                BorderRadius = 8
             };
             btnDismScanHealth.Click += async (s, e) =>
             {
@@ -173,13 +211,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnDismScanHealth);
 
             // DISM RestoreHealth
-            btnDismRestoreHealth = new Button
+            btnDismRestoreHealth = new ModernButton
             {
-                Text = "DISM RestoreHealth",
-                Location = new Point(450, 370),
-                Size = new Size(120, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🔄 DISM Restore",
+                Location = new Point(600, 360),
+                Size = new Size(120, 45),
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                BorderRadius = 8
             };
             btnDismRestoreHealth.Click += async (s, e) =>
             {
@@ -191,13 +229,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnDismRestoreHealth);
 
             // Clear Temp
-            btnClearTemp = new Button
+            btnClearTemp = new ModernButton
             {
-                Text = "Clear Temp",
-                Location = new Point(10, 410),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🗑️ Clear Temp",
+                Location = new Point(20, 420),
+                Size = new Size(120, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 6
             };
             btnClearTemp.Click += (s, e) =>
             {
@@ -208,13 +246,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnClearTemp);
 
             // Clear Cache
-            btnClearCache = new Button
+            btnClearCache = new ModernButton
             {
-                Text = "Clear Cache",
-                Location = new Point(100, 410),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "💾 Clear Cache",
+                Location = new Point(160, 420),
+                Size = new Size(120, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 6
             };
             btnClearCache.Click += (s, e) =>
             {
@@ -225,13 +263,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnClearCache);
 
             // Disk Cleanup
-            btnDiskCleanup = new Button
+            btnDiskCleanup = new ModernButton
             {
-                Text = "Disk Cleanup",
-                Location = new Point(190, 410),
-                Size = new Size(120, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "💿 Disk Cleanup",
+                Location = new Point(300, 420),
+                Size = new Size(120, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 6
             };
             btnDiskCleanup.Click += async (s, e) =>
             {
@@ -242,13 +280,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnDiskCleanup);
 
             // Optimize Drives
-            btnOptimizeDrives = new Button
+            btnOptimizeDrives = new ModernButton
             {
-                Text = "Optimize Drives",
-                Location = new Point(320, 410),
-                Size = new Size(120, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "⚡ Optimize Drives",
+                Location = new Point(440, 420),
+                Size = new Size(120, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 6
             };
             btnOptimizeDrives.Click += async (s, e) =>
             {
@@ -259,13 +297,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnOptimizeDrives);
 
             // Clear DNS
-            btnClearDNS = new Button
+            btnClearDNS = new ModernButton
             {
-                Text = "Clear DNS",
-                Location = new Point(450, 410),
-                Size = new Size(120, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🌐 Clear DNS",
+                Location = new Point(580, 420),
+                Size = new Size(120, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 6
             };
             btnClearDNS.Click += async (s, e) =>
             {
@@ -276,25 +314,24 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnClearDNS);
 
             // Kill Process
-            btnKillProcess = new Button
+            btnKillProcess = new ModernButton
             {
-                Text = "Kill Process",
-                Location = new Point(580, 410),
-                Size = new Size(100, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "❌ Kill Process",
+                Location = new Point(720, 420),
+                Size = new Size(120, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 6
             };
             btnKillProcess.Click += (s, e) => KillCurrentProcess();
             this.Controls.Add(btnKillProcess);
 
             // Clear Login Data Checkbox (isolated, next to buttons)
-            chkClearLoginData = new CheckBox
+            chkClearLoginData = new ModernCheckBox
             {
-                Text = "Clear Browser Login Data",
-                Location = new Point(10, 450),
-                Size = new Size(200, 25),
-                ForeColor = Color.White,
-                BackColor = Color.FromArgb(30, 30, 30),
+                Text = "🔒 Clear Browser Login Data",
+                Location = new Point(20, 480),
+                Size = new Size(250, 30),
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
                 Checked = false // Disabled by default
             };
             chkClearLoginData.CheckedChanged += (s, e) =>
@@ -318,13 +355,21 @@ namespace MyMaintenanceApp
             };
             this.Controls.Add(chkClearLoginData);
 
+            // Theme Switcher
+            themeSwitcher = new ThemeSwitcher
+            {
+                Location = new Point(750, 15),
+                Size = new Size(140, 40)
+            };
+            this.Controls.Add(themeSwitcher);
+
             // Footer label
             lblFooter = new Label
             {
                 Text = "Made By @DangerousPixel",
                 Location = new Point(390, 625),
                 Size = new Size(200, 20),
-                Font = new Font("Arial", 10, FontStyle.Bold),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 ForeColor = Color.Gray,
                 TextAlign = ContentAlignment.MiddleCenter
             };
@@ -343,13 +388,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(lblVersion);
 
             // "X" Button
-            btnX = new Button
+            btnX = new ModernButton
             {
-                Text = "X",
-                Location = new Point(10, 620),
-                Size = new Size(40, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "❌",
+                Location = new Point(20, 620),
+                Size = new Size(50, 40),
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                BorderRadius = 8
             };
             btnX.Click += (s, e) =>
             {
@@ -361,13 +406,13 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnX);
 
             // Website for iOS Mods Button
-            btnWebsite = new Button
+            btnWebsite = new ModernButton
             {
-                Text = "Website for iOS Mods",
-                Location = new Point(60, 620),
-                Size = new Size(160, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🌐 Website for iOS Mods",
+                Location = new Point(90, 620),
+                Size = new Size(180, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 8
             };
             btnWebsite.Click += (s, e) =>
             {
@@ -379,25 +424,25 @@ namespace MyMaintenanceApp
             this.Controls.Add(btnWebsite);
 
             // Credits Button
-            btnCredits = new Button
+            btnCredits = new ModernButton
             {
-                Text = "Credits",
-                Location = new Point(230, 620),
-                Size = new Size(70, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "👥 Credits",
+                Location = new Point(290, 620),
+                Size = new Size(100, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 8
             };
             btnCredits.Click += (s, e) => ShowCreditsPopup();
             this.Controls.Add(btnCredits);
 
             // GitHub Button
-            Button btnGitHub = new Button
+            ModernButton btnGitHub = new ModernButton
             {
-                Text = "GitHub",
-                Location = new Point(310, 620),
-                Size = new Size(70, 30),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White
+                Text = "🐙 GitHub",
+                Location = new Point(410, 620),
+                Size = new Size(100, 40),
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderRadius = 8
             };
             btnGitHub.Click += (s, e) =>
             {
